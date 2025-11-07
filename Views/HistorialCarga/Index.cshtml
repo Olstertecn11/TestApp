@@ -1,0 +1,68 @@
+@model IEnumerable<TestAplication.Models.Data.HistorialCarga>
+  @{
+  ViewData["Title"] = "Historial de Cargas";
+  }
+
+  <h2 class="mb-4">Historial de Cargas</h2>
+
+  @if (TempData["Success"] != null)
+  {
+  <div class="alert alert-success">@TempData["Success"]</div>
+  }
+  @if (TempData["Error"] != null)
+  {
+  <div class="alert alert-danger">@TempData["Error"]</div>
+  }
+
+  @if (Model == null || !Model.Any())
+  {
+  <div class="alert alert-info text-center mt-4">
+    <i class="fa fa-info-circle"></i> No existen cargas registradas.
+  </div>
+  }
+  else
+  {
+  <table class="table table-bordered table-hover align-middle">
+    <thead class="table-dark">
+      <tr>
+        <th>ID</th>
+        <th>Archivo</th>
+        <th>Fecha de Carga</th>
+        <th>Estado</th>
+        <th>Totales</th>
+        <th>IP</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      @foreach (var item in Model)
+      {
+      var badgeColor = item.Estado == "Completado" ? "success" : "danger";
+      <tr>
+        <td>@item.IdHistorialCarga</td>
+        <td>@item.NombreArchivo</td>
+        <td>@item.FechaCarga.ToString("dd/MM/yyyy HH:mm")</td>
+        <td>
+          <span class="badge bg-@badgeColor">@item.Estado</span>
+        </td>
+        <td>
+          <div>
+            <strong>Empresas:</strong> @item.TotalEmpresas <br />
+            <strong>Sucursales:</strong> @item.TotalSucursales <br />
+            <strong>Colaboradores:</strong> @item.TotalColaboradores
+          </div>
+        </td>
+        <td>@item.IpCarga</td>
+        <td>
+          <form asp-action="Delete" asp-route-id="@item.IdHistorialCarga" method="post" style="display:inline;">
+            <button type="submit" class="btn btn-danger btn-sm"
+              onclick="return confirm('¿Seguro que deseas eliminar todo el conjunto de datos de esta carga?');">
+              <i class="fa fa-trash"></i> Eliminar todo
+            </button>
+          </form>
+        </td>
+      </tr>
+      }
+    </tbody>
+  </table>
+  }

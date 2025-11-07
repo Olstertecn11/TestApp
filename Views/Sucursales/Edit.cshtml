@@ -1,0 +1,23 @@
+@model TestAplication.Models.Data.Sucursal
+@{
+ViewData["Title"] = "Editar Sucursal";
+}
+
+<h2>Editar Sucursal</h2>
+
+<form asp-action="Update" method="post">
+  <input type="hidden" asp-for="IdSucursal" />
+
+  <div class="mb-3">
+    <label asp-for="Nombre" class="form-label"></label>
+    <input asp-for="Nombre" class="form-control" />
+  </div>
+
+  <div class="mb-3">
+    <label asp-for="Direccion" class="form-label"></label>
+    <input asp-for="Direccion" class="form-control" />
+  </div>
+
+  <button type="submit" class="btn btn-success">Guardar cambios</button>
+  <a asp-action="Index" class="btn btn-secondary">Regresar</a>
+</form>

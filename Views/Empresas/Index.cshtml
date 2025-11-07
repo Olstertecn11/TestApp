@@ -1,0 +1,54 @@
+@model IEnumerable<TestAplication.Models.Data.Empresa>
+  @{
+  ViewData["Title"] = "Empresas";
+  }
+
+  <h2>Empresas</h2>
+
+  @if (TempData["Success"] != null)
+  {
+  <div class="alert alert-success">@TempData["Success"]</div>
+  }
+  @if (TempData["Error"] != null)
+  {
+  <div class="alert alert-danger">@TempData["Error"]</div>
+  }
+
+  <table class="table table-striped table-bordered">
+    <thead class="table-dark">
+      <tr>
+        <th>Id</th>
+        <th>Nombre</th>
+        <th>País</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      @if (Model != null && Model.Any())
+      {
+      foreach (var item in Model)
+      {
+      <tr>
+        <td>@item.IdEmpresa</td>
+        <td>@item.Nombre</td>
+        <td>@item.Pais</td>
+        <td>
+          <a class="btn btn-warning btn-sm" asp-action="Edit" asp-route-id="@item.IdEmpresa">Editar</a>
+          <form asp-action="Delete" asp-route-id="@item.IdEmpresa" method="post" style="display:inline;">
+            <button type="submit" class="btn btn-danger btn-sm"
+              onclick="return confirm('¿Deseas eliminar esta empresa?');">
+              Eliminar
+            </button>
+          </form>
+        </td>
+      </tr>
+      }
+      }
+      else
+      {
+      <tr>
+        <td colspan="4" class="text-center text-muted">No hay empresas disponibles.</td>
+      </tr>
+      }
+    </tbody>
+  </table>

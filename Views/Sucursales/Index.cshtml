@@ -1,0 +1,47 @@
+@model IEnumerable<TestAplication.Models.Data.Sucursal>
+  @{
+  ViewData["Title"] = "Sucursales";
+  }
+
+  <h2>Sucursales</h2>
+
+  @if (TempData["Success"] != null)
+  {
+  <div class="alert alert-success">@TempData["Success"]</div>
+  }
+  @if (TempData["Error"] != null)
+  {
+  <div class="alert alert-danger">@TempData["Error"]</div>
+  }
+
+  <table class="table table-striped table-bordered">
+    <thead class="table-dark">
+      <tr>
+        <th>Id</th>
+        <th>Nombre</th>
+        <th>Dirección</th>
+        <th>Empresa</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      @foreach (var item in Model)
+      {
+      <tr>
+        <td>@item.IdSucursal</td>
+        <td>@item.Nombre</td>
+        <td>@item.Direccion</td>
+        <td>@item.Empresa?.Nombre</td>
+        <td>
+          <a class="btn btn-warning btn-sm" asp-action="Edit" asp-route-id="@item.IdSucursal">Editar</a>
+          <form asp-action="Delete" asp-route-id="@item.IdSucursal" method="post" style="display:inline;">
+            <button type="submit" class="btn btn-danger btn-sm"
+              onclick="return confirm('¿Deseas eliminar esta sucursal?');">
+              Eliminar
+            </button>
+          </form>
+        </td>
+      </tr>
+      }
+    </tbody>
+  </table>

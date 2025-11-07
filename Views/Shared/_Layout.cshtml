@@ -27,14 +27,41 @@
         <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
           <ul class="navbar-nav flex-grow-1">
             <li class="nav-item">
-              <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+              <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Inicio</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+              <div class="dropdown">
+                <a class="nav-link text-dark dropdown-toggle" type="button" id="dropdownMenuButton1"
+                  data-bs-toggle="dropdown" aria-expanded="false">
+                  RRHH
+                </a>
+                <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+                  <li><a class="dropdown-item" asp-controller="Empresas" asp-action="Index">Empresas</a></li>
+                  <li><a class="dropdown-item" asp-controller="Sucursales" asp-action="Index">Sucursales</a>
+                  </li>
+                  <li><a class="dropdown-item" asp-controller="Colaboradores" asp-action="Index">Empleados</a>
+                  </li>
+                </ul>
+              </div>
             </li>
             <li class="nav-item">
-              <a class="nav-link text-dark" asp-area="" asp-controller="CargaSucursal" asp-action="Index">Carga de
-                sucursales</a>
+              <div class="dropdown">
+                <a class="nav-link text-dark dropdown-toggle" type="button" id="dropdownMenuButton2"
+                  data-bs-toggle="dropdown" aria-expanded="false">
+                  Cargas
+                </a>
+                <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton2">
+                  <li>
+                    <a class="dropdown-item" asp-area="" asp-controller="CargaSucursal" asp-action="New">Cargar <i
+                        class="fas fa-cloud-upload-alt"></i></a>
+                  </li>
+                  <li><a class="dropdown-item" asp-area="" asp-controller="HistorialCarga" asp-action="Index">Historial
+                      de carga <i class="fas fa-history"></i></a> </li>
+                  <li><a class="dropdown-item" href="#">Reporte General<i class="fas fa-th-list"></i></a> </li>
+                </ul>
+              </div>
+            </li>
+            <li class="nav-item">
             </li>
           </ul>
         </div>
