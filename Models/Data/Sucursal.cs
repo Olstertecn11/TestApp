@@ -8,6 +8,7 @@ namespace TestAplication.Models.Data
         public int IdEmpresaFk { get; set; }
         public string Nombre { get; set; } = null!;
         public string? Direccion { get; set; }
+        public bool EstaActivo { get; set; } = true;
 
         // Relación con Empresa (N a 1)
         public Empresa Empresa { get; set; } = null!;

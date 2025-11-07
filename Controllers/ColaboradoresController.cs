@@ -18,6 +18,7 @@ namespace TestAplication.Controllers
         {
             var colaboradores = await _context.Colaboradores
                 .Include(c => c.Sucursal)
+                .Where(e => e.EstaActivo)
                 .ToListAsync();
             return View(colaboradores);
         }
@@ -59,14 +60,24 @@ namespace TestAplication.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
         {
-            var colaborador = await _context.Colaboradores.FindAsync(id);
-            if (colaborador == null)
-                return NotFound();
+          var colaborador = await _context.Colaboradores.FindAsync(id);
+          if (colaborador == null)
+            return NotFound();
 
-            _context.Colaboradores.Remove(colaborador);
+          try
+          {
+            colaborador.EstaActivo = false; // 🔹 Soft delete
+            _context.Update(colaborador);
             await _context.SaveChangesAsync();
-            TempData["Success"] = "Colaborador eliminado correctamente.";
-            return RedirectToAction(nameof(Index));
+
+            TempData["Success"] = "Colaborador desactivado correctamente.";
+          }
+          catch (DbUpdateException ex)
+          {
+            TempData["Error"] = $"Error al desactivar: {ex.Message}";
+          }
+
+          return RedirectToAction(nameof(Index));
         }
     }
 }

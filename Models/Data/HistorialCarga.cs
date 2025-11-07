@@ -30,5 +30,7 @@ namespace TestAplication.Models.Data
 
         // Relación con Empresa
         public ICollection<Empresa>? Empresas { get; set; }
+
+        public bool EstaActivo { get; set; } = true;
     }
 }

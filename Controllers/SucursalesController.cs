@@ -18,6 +18,7 @@ namespace TestAplication.Controllers
         {
             var sucursales = await _context.Sucursales
                 .Include(s => s.Empresa)
+                .Where(e => e.EstaActivo)
                 .ToListAsync();
             return View(sucursales);
         }
@@ -59,14 +60,36 @@ namespace TestAplication.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
         {
-            var sucursal = await _context.Sucursales.FindAsync(id);
-            if (sucursal == null)
-                return NotFound();
+          var sucursal = await _context.Sucursales
+            .Include(s => s.Colaboradores)
+            .FirstOrDefaultAsync(s => s.IdSucursal == id);
 
-            _context.Sucursales.Remove(sucursal);
+          if (sucursal == null)
+            return NotFound();
+
+          try
+          {
+            // 🔹 Desactivar colaboradores
+            foreach (var colaborador in sucursal.Colaboradores)
+            {
+              colaborador.EstaActivo = false;
+              _context.Update(colaborador);
+            }
+
+            // 🔹 Desactivar sucursal
+            sucursal.EstaActivo = false;
+            _context.Update(sucursal);
+
             await _context.SaveChangesAsync();
-            TempData["Success"] = "Sucursal eliminada correctamente.";
-            return RedirectToAction(nameof(Index));
+
+            TempData["Success"] = "Sucursal y colaboradores desactivados correctamente.";
+          }
+          catch (DbUpdateException ex)
+          {
+            TempData["Error"] = $"Error al desactivar: {ex.Message}";
+          }
+
+          return RedirectToAction(nameof(Index));
         }
     }
 }

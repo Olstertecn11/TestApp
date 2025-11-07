@@ -9,6 +9,7 @@ namespace TestAplication.Models.Data
         public int IdSucursalFk { get; set; }
         public string Nombre { get; set; } = null!;
         public string? CUI { get; set; }
+        public bool EstaActivo { get; set; } = true;
 
         // Relación con Sucursal (N a 1)
         public Sucursal Sucursal { get; set; } = null!;
