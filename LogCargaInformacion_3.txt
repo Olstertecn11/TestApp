@@ -1,4 +1,4 @@
-🕒 Log de carga 7/11/2025 14:07:18
+🕒 Log de carga 7/11/2025 14:51:48
 Archivo: file_test.json
 
 ⚠️ Empresa ya existente: Organizacion (Guatemala)
