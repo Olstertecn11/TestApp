@@ -8,10 +8,12 @@ namespace TestAplication.Controllers
     public class HistorialCargaController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly ILogger<HistorialCargaController> _logger;
 
-        public HistorialCargaController(ApplicationDbContext context)
+        public HistorialCargaController(ApplicationDbContext context, ILogger<HistorialCargaController> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         // GET: HistorialCarga
@@ -39,7 +41,7 @@ namespace TestAplication.Controllers
             : "⚠️ No se encontró el archivo de log para esta carga.";
 
           var empresas = await _context.Empresas
-            .Where(e => e.IdHistorialCargaFk == id && e.EstaActivo)
+            .Where(e => e.IdHistorialCargaFk == id)
             .Select(e => new
                 {
                 Tipo = "Empresa",
@@ -54,7 +56,7 @@ namespace TestAplication.Controllers
 
           var sucursales = await (from s in _context.Sucursales
               join e in _context.Empresas on s.IdEmpresaFk equals e.IdEmpresa
-              where s.IdHistorialCargaFk == id && s.EstaActivo && e.EstaActivo
+              where s.IdHistorialCargaFk == id 
               select new
               {
               Tipo = "Sucursal",
@@ -70,7 +72,7 @@ namespace TestAplication.Controllers
           var colaboradores = await (from c in _context.Colaboradores
               join s in _context.Sucursales on c.IdSucursalFk equals s.IdSucursal
               join e in _context.Empresas on s.IdEmpresaFk equals e.IdEmpresa
-              where c.IdHistorialCargaFk == id && c.EstaActivo && s.EstaActivo && e.EstaActivo
+              where c.IdHistorialCargaFk == id 
               select new
               {
               Tipo = "Colaborador",
@@ -93,6 +95,76 @@ namespace TestAplication.Controllers
           ViewBag.LogContent = logContent;
           ViewBag.Historial = historial;
           return View(datos);
+        }
+
+
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Delete(int id)
+        {
+          var historial = await _context.HistorialCargas.FindAsync(id);
+          if (historial == null)
+            return NotFound();
+
+          using var transaction = await _context.Database.BeginTransactionAsync();
+
+          try
+          {
+            var colaboradores = await _context.Colaboradores
+              .Where(c =>
+                  c.Sucursal.Empresa.IdHistorialCargaFk == id &&
+                  c.EstaActivo)
+              .ToListAsync();
+
+            foreach (var col in colaboradores)
+              col.EstaActivo = false;
+
+            if (colaboradores.Any())
+              _context.Colaboradores.UpdateRange(colaboradores);
+
+            var sucursales = await _context.Sucursales
+              .Where(s =>
+                  s.Empresa.IdHistorialCargaFk == id &&
+                  s.EstaActivo)
+              .ToListAsync();
+
+            foreach (var suc in sucursales)
+              suc.EstaActivo = false;
+
+            if (sucursales.Any())
+              _context.Sucursales.UpdateRange(sucursales);
+
+            var empresas = await _context.Empresas
+              .Where(e =>
+                  e.IdHistorialCargaFk == id &&
+                  e.EstaActivo)
+              .ToListAsync();
+
+            foreach (var emp in empresas)
+              emp.EstaActivo = false;
+
+            if (empresas.Any())
+              _context.Empresas.UpdateRange(empresas);
+
+            historial.EstaActivo = false;
+            historial.Estado = "Desactivado";
+
+            _context.HistorialCargas.Update(historial);
+
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+
+            TempData["Success"] = "Los registros del historial fueron desactivados correctamente.";
+            return RedirectToAction(nameof(Index));
+          }
+          catch (Exception ex)
+          {
+            await transaction.RollbackAsync();
+            _logger.LogError(ex, "Error al desactivar registros del historial.");
+            TempData["Error"] = "Ocurrió un error al intentar desactivar los registros del historial.";
+            return RedirectToAction(nameof(Index));
+          }
         }
 
 

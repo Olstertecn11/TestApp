@@ -5,7 +5,6 @@
 
   <h2 class="mb-4">Historial de Cargas</h2>
 
-
   @if (Model == null || !Model.Any())
   {
   <div class="alert alert-info text-center mt-4">
@@ -14,7 +13,7 @@
   }
   else
   {
-  <table class="table table-bordered table-hover align-middle">
+  <table class="table table-bordered table-hover align-middle custom-table">
     <thead class="table-dark">
       <tr>
         <th>ID</th>
@@ -30,7 +29,8 @@
       @foreach (var item in Model)
       {
       var badgeColor = item.Estado == "Completado" ? "success" : "danger";
-      <tr>
+      var rowClass = item.EstaActivo ? "" : "row-inactivo"; // 👈 Clase para los desactivados
+      <tr class="@rowClass">
         <td>@item.IdHistorialCarga</td>
         <td>@item.NombreArchivo</td>
         <td>@item.FechaCarga.ToString("dd/MM/yyyy HH:mm")</td>
@@ -62,3 +62,14 @@
     </tbody>
   </table>
   }
+
+  <style>
+    .custom-table tr.row-inactivo>td {
+      background-color: #f8d7da !important;
+      color: #721c24 !important;
+    }
+
+    .custom-table tr.row-inactivo:hover {
+      background-color: #f5c6cb !important;
+    }
+  </style>
