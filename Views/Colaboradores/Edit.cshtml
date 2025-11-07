@@ -1,23 +1,32 @@
 @model TestAplication.Models.Data.Colaborador
+
 @{
 ViewData["Title"] = "Editar Colaborador";
 }
 
 <h2>Editar Colaborador</h2>
 
-<form asp-action="Update" method="post">
+@Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
+<form asp-action="Update" asp-route-id="@Model.IdColaborador" method="post">
   <input type="hidden" asp-for="IdColaborador" />
-
+  <input type="hidden" asp-for="IdSucursalFk" />
+  <input type="hidden" asp-for="EstaActivo" />
   <div class="mb-3">
     <label asp-for="Nombre" class="form-label"></label>
     <input asp-for="Nombre" class="form-control" />
+    <span asp-validation-for="Nombre" class="text-danger"></span>
   </div>
 
   <div class="mb-3">
     <label asp-for="CUI" class="form-label"></label>
     <input asp-for="CUI" class="form-control" />
+    <span asp-validation-for="CUI" class="text-danger"></span>
   </div>
 
   <button type="submit" class="btn btn-success">Guardar cambios</button>
   <a asp-action="Index" class="btn btn-secondary">Regresar</a>
 </form>
+
+@section Scripts {
+<partial name="_ValidationScriptsPartial" />
+}

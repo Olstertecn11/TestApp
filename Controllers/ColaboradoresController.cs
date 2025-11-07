@@ -25,35 +25,50 @@ namespace TestAplication.Controllers
 
         public async Task<IActionResult> Edit(int id)
         {
-            var colaborador = await _context.Colaboradores.FindAsync(id);
-            if (colaborador == null)
-                return NotFound();
+          var colaborador = await _context.Colaboradores
+            .AsNoTracking()
+            .FirstOrDefaultAsync(c => c.IdColaborador == id);
 
-            return View(colaborador);
+          if (colaborador == null)
+            return NotFound();
+
+          return View(colaborador);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Update(int id, Colaborador colaborador)
+        public async Task<IActionResult> Update(int id, [Bind("IdColaborador,Nombre,CUI")] Colaborador model)
         {
-            if (id != colaborador.IdColaborador)
-                return BadRequest();
+          if (id != model.IdColaborador)
+            return BadRequest();
 
-            if (!ModelState.IsValid)
-                return View("Edit", colaborador);
+          if (!ModelState.IsValid)
+          {
+            TempData["Error"] = "Datos inválidos.";
+            return View("Edit", model);
+          }
 
-            try
-            {
-                _context.Update(colaborador);
-                await _context.SaveChangesAsync();
-                TempData["Success"] = "Colaborador actualizado correctamente.";
-                return RedirectToAction(nameof(Index));
-            }
-            catch (DbUpdateException ex)
-            {
-                TempData["Error"] = $"Error al actualizar: {ex.Message}";
-                return View("Edit", colaborador);
-            }
+          var colaborador = await _context.Colaboradores.FindAsync(id);
+          if (colaborador == null)
+            return NotFound();
+
+          try
+          {
+            // 🔹 Solo actualizamos las propiedades necesarias
+            colaborador.Nombre = model.Nombre;
+            colaborador.CUI = model.CUI;
+
+            _context.Colaboradores.Update(colaborador);
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = "Colaborador actualizado correctamente.";
+            return RedirectToAction(nameof(Index));
+          }
+          catch (DbUpdateException ex)
+          {
+            TempData["Error"] = $"Error al actualizar: {ex.Message}";
+            return View("Edit", model);
+          }
         }
 
         [HttpPost]

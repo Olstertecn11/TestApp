@@ -12,6 +12,6 @@ namespace TestAplication.Models.Data
         public bool EstaActivo { get; set; } = true;
 
         // Relación con Sucursal (N a 1)
-        public Sucursal Sucursal { get; set; } = null!;
+        public Sucursal? Sucursal { get; set; }
     }
 }
