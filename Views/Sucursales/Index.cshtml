@@ -17,7 +17,15 @@
       </tr>
     </thead>
     <tbody>
-      @foreach (var item in Model)
+      @if(!Model.Any())
+      {
+      <tr>
+        <td colspan="5" class="text-center">No hay sucursales disponibles.</td>
+      </tr>
+      }
+      else{
+
+      foreach (var item in Model)
       {
       <tr>
         <td>@item.IdSucursal</td>
@@ -34,6 +42,7 @@
           </form>
         </td>
       </tr>
+      }
       }
     </tbody>
   </table>
