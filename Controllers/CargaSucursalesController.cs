@@ -40,18 +40,18 @@ public class CargaSucursalController : Controller
 
     using var reader = new StreamReader(file.OpenReadStream());
     var content = await reader.ReadToEndAsync();
-
     using var json = JsonDocument.Parse(content);
-    var empresaElement = json.RootElement.GetProperty("empresa");
 
-    var nombreEmpresa = empresaElement.GetProperty("nombre").GetString()!;
-    var paisEmpresa = empresaElement.GetProperty("pais").GetString()!;
+    var empresaElement = json.RootElement.GetProperty("empresa");
+    var nombreEmpresa = empresaElement.GetProperty("nombre").GetString()?.Trim() ?? "";
+    var paisEmpresa = empresaElement.GetProperty("pais").GetString()?.Trim() ?? "";
 
     using var transaction = await _context.Database.BeginTransactionAsync();
+    bool inserted = false;
 
     try
     {
-      // 🔹 Crear el registro del historial de carga
+      // 🧾 Crear registro en HistorialCarga
       var historial = new HistorialCarga
       {
         NombreArchivo = file.FileName,
@@ -63,9 +63,19 @@ public class CargaSucursalController : Controller
       _context.HistorialCargas.Add(historial);
       await _context.SaveChangesAsync();
 
-      // 🔹 EMPRESA: verifica si ya existe
+      // 📂 Ruta del archivo log
+      var logPath = Path.Combine(Directory.GetCurrentDirectory(), $"LogCargaInformacion_{historial.IdHistorialCarga}.txt");
+      await System.IO.File.WriteAllTextAsync(logPath, $"🕒 Log de carga {DateTime.Now}\nArchivo: {file.FileName}\n\n");
+
+      int totalSucursales = 0;
+      int totalColaboradores = 0;
+
+      // 🏢 Buscar empresa activa existente
       var empresa = await _context.Empresas
-        .FirstOrDefaultAsync(e => e.Nombre == nombreEmpresa && e.Pais == paisEmpresa);
+        .FirstOrDefaultAsync(e =>
+            e.Nombre.ToLower() == nombreEmpresa.ToLower() &&
+            e.Pais.ToLower() == paisEmpresa.ToLower() &&
+            e.EstaActivo);
 
       if (empresa == null)
       {
@@ -73,34 +83,36 @@ public class CargaSucursalController : Controller
         {
           Nombre = nombreEmpresa,
           Pais = paisEmpresa,
+          EstaActivo = true,
           IdHistorialCargaFk = historial.IdHistorialCarga
         };
         _context.Empresas.Add(empresa);
+        inserted = true;
         await _context.SaveChangesAsync();
+        await System.IO.File.AppendAllTextAsync(logPath, $"✅ Empresa creada: {empresa.Nombre} ({empresa.Pais})\n");
       }
       else
       {
-        empresa.IdHistorialCargaFk = historial.IdHistorialCarga;
-        _context.Update(empresa);
-        await _context.SaveChangesAsync();
+        await System.IO.File.AppendAllTextAsync(
+            logPath,
+            $"⚠️ Empresa ya existente: {nombreEmpresa} ({paisEmpresa}){Environment.NewLine}"
+            );
       }
 
-      int totalSucursales = 0;
-      int totalColaboradores = 0;
-
-      // 🔹 SUCURSALES
+      // 🏬 Procesar sucursales
       var sucursales = empresaElement.GetProperty("sucursales").EnumerateArray();
 
       foreach (var s in sucursales)
       {
-        var nombreSucursal = s.GetProperty("nombre").GetString()!;
-        var direccion = s.GetProperty("direccion").GetString()!;
+        var nombreSucursal = s.GetProperty("nombre").GetString()?.Trim() ?? "";
+        var direccion = s.GetProperty("direccion").GetString()?.Trim() ?? "";
 
         var sucursal = await _context.Sucursales
           .FirstOrDefaultAsync(x =>
-              x.Nombre == nombreSucursal &&
-              x.Direccion == direccion &&
-              x.IdEmpresaFk == empresa.IdEmpresa);
+              x.Nombre.ToLower() == nombreSucursal.ToLower() &&
+              x.Direccion.ToLower() == direccion.ToLower() &&
+              x.IdEmpresaFk == empresa.IdEmpresa &&
+              x.EstaActivo);
 
         if (sucursal == null)
         {
@@ -108,26 +120,36 @@ public class CargaSucursalController : Controller
           {
             IdEmpresaFk = empresa.IdEmpresa,
             Nombre = nombreSucursal,
-            Direccion = direccion
+            Direccion = direccion,
+            EstaActivo = true,
+            IdHistorialCargaFk = historial.IdHistorialCarga
           };
           _context.Sucursales.Add(sucursal);
           await _context.SaveChangesAsync();
           totalSucursales++;
+          await System.IO.File.AppendAllTextAsync(logPath, $"✅ Sucursal creada: {nombreSucursal}\n");
+        }
+        else
+        {
+          await System.IO.File.AppendAllTextAsync(logPath, $"⚠️ Sucursal ya existente: {nombreSucursal}\n");
         }
 
-        // 🔹 COLABORADORES
+        // 👥 Procesar colaboradores
         var colaboradores = s.GetProperty("colaboradores").EnumerateArray();
 
         foreach (var c in colaboradores)
         {
-          var nombreColaborador = c.GetProperty("nombre").GetString()!;
-          var cui = c.GetProperty("CUI").GetString();
+          var nombreColaborador = c.GetProperty("nombre").GetString()?.Trim() ?? "";
+          var cui = c.TryGetProperty("CUI", out var cuiProp)
+            ? cuiProp.GetString()?.Trim() ?? ""
+            : "";
 
           var existeColaborador = await _context.Colaboradores
             .AnyAsync(x =>
-                x.Nombre == nombreColaborador &&
-                x.CUI == cui &&
-                x.IdSucursalFk == sucursal.IdSucursal);
+                x.IdSucursalFk == sucursal.IdSucursal &&
+                x.EstaActivo &&
+                x.Nombre.ToLower() == nombreColaborador.ToLower() &&
+                ((x.CUI ?? "") == (cui ?? "")));
 
           if (!existeColaborador)
           {
@@ -135,36 +157,42 @@ public class CargaSucursalController : Controller
             {
               IdSucursalFk = sucursal.IdSucursal,
               Nombre = nombreColaborador,
-              CUI = cui
+              CUI = cui,
+              EstaActivo = true,
+              IdHistorialCargaFk = historial.IdHistorialCarga
             };
             _context.Colaboradores.Add(colaborador);
             totalColaboradores++;
+            await System.IO.File.AppendAllTextAsync(logPath, $"✅ Colaborador agregado: {nombreColaborador} (CUI: {cui})\n");
+          }
+          else
+          {
+            await System.IO.File.AppendAllTextAsync(logPath, $"⚠️ Colaborador ya existente: {nombreColaborador} (CUI: {cui})\n");
           }
         }
       }
 
       await _context.SaveChangesAsync();
 
-      // 🔹 Actualiza totales en el historial
-      historial.TotalEmpresas = 1;
+      // 📊 Actualizar historial con totales
+      historial.TotalEmpresas = inserted ? 1 : 0;
       historial.TotalSucursales = totalSucursales;
       historial.TotalColaboradores = totalColaboradores;
-
       _context.HistorialCargas.Update(historial);
-      await _context.SaveChangesAsync();
 
+      await _context.SaveChangesAsync();
       await transaction.CommitAsync();
 
-      TempData["Success"] = $"Carga exitosa: {file.FileName}";
-      return RedirectToAction("Index");
+      await System.IO.File.AppendAllTextAsync(logPath, "\n✅ Carga completada correctamente.\n");
+
+      TempData["Success"] = $"Carga exitosa: {file.FileName}. Detalles en LogCargaInformacion_{historial.IdHistorialCarga}.txt";
+      return RedirectToAction("Index", "HistorialCarga");
     }
     catch (Exception ex)
     {
       await transaction.RollbackAsync();
-
       _logger.LogError(ex, "Error al procesar el archivo JSON.");
 
-      // Registrar en historial si ya fue creado
       var historialError = new HistorialCarga
       {
         NombreArchivo = file.FileName,
@@ -173,8 +201,12 @@ public class CargaSucursalController : Controller
         MensajeError = ex.Message,
         IpCarga = HttpContext.Connection.RemoteIpAddress?.ToString()
       };
+
       _context.HistorialCargas.Add(historialError);
       await _context.SaveChangesAsync();
+
+      var logPathError = Path.Combine(Directory.GetCurrentDirectory(), $"LogCargaInformacion_Error_{DateTime.Now:yyyyMMddHHmmss}.txt");
+      await System.IO.File.WriteAllTextAsync(logPathError, $"❌ Error al procesar la carga:\n{ex.Message}");
 
       return StatusCode(500, "Ocurrió un error al procesar el archivo.");
     }

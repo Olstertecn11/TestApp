@@ -13,5 +13,8 @@ namespace TestAplication.Models.Data
 
         // Relación con Sucursal (N a 1)
         public Sucursal? Sucursal { get; set; }
+
+
+        public int? IdHistorialCargaFk { get; set; }
     }
 }

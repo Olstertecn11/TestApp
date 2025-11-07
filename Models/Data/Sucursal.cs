@@ -15,5 +15,7 @@ namespace TestAplication.Models.Data
 
         // Relación con Colaboradores (1 a muchos)
         public ICollection<Colaborador>? Colaboradores { get; set; }
+
+        public int? IdHistorialCargaFk { get; set; }
     }
 }

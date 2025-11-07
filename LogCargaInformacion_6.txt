@@ -1,0 +1,15 @@
+🕒 Log de carga 7/11/2025 14:30:15
+Archivo: file_test.json
+
+⚠️ Empresa ya existente: Organizacion (Guatemala)
+⚠️ Sucursal ya existente: Sucursal 1
+⚠️ Colaborador ya existente: Juan Perez (CUI: 123456789123)
+⚠️ Colaborador ya existente: Alvaro Mendez (CUI: 12346789123)
+⚠️ Sucursal ya existente: Sucursal 2
+⚠️ Colaborador ya existente: Esteban Jacobo (CUI: 1234569123)
+⚠️ Sucursal ya existente: Sucursal 3
+⚠️ Colaborador ya existente: Lilian Reyes (CUI: 123456789)
+⚠️ Colaborador ya existente: Eduardo Lopez (CUI: 46789123)
+⚠️ Colaborador ya existente: Joel Linares (CUI: 46789123)
+
+✅ Carga completada correctamente.
