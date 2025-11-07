@@ -27,36 +27,39 @@ namespace TestAplication.Controllers
         // GET: Empresas/Edit/5
         public async Task<IActionResult> Edit(int id)
         {
-            var empresa = await _context.Empresas.FindAsync(id);
-            if (empresa == null)
-                return NotFound();
+          var empresa = await _context.Empresas.FindAsync(id);
+          if (empresa == null)
+            return NotFound();
 
-            return View(empresa);
+          return View(empresa);
         }
 
         // POST: Empresas/Update/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Update(int id, Empresa empresa)
+        public async Task<IActionResult> Update(int id, [Bind("IdEmpresa,Nombre,Pais,EstaActivo,IdHistorialCargaFk")] Empresa empresa)
         {
-            if (id != empresa.IdEmpresa)
-                return BadRequest();
+          if (id != empresa.IdEmpresa)
+            return BadRequest();
 
-            if (!ModelState.IsValid)
-                return View("Edit", empresa);
+          if (!ModelState.IsValid)
+          {
+            TempData["Error"] = "Datos inválidos. Verifica los campos.";
+            return View("Edit", empresa);
+          }
 
-            try
-            {
-                _context.Update(empresa);
-                await _context.SaveChangesAsync();
-                TempData["Success"] = "Empresa actualizada correctamente.";
-                return RedirectToAction(nameof(Index));
-            }
-            catch (DbUpdateException ex)
-            {
-                TempData["Error"] = $"Error al actualizar: {ex.Message}";
-                return View("Edit", empresa);
-            }
+          try
+          {
+            _context.Empresas.Update(empresa);
+            await _context.SaveChangesAsync();
+            TempData["Success"] = "Empresa actualizada correctamente.";
+            return RedirectToAction(nameof(Index));
+          }
+          catch (DbUpdateException ex)
+          {
+            TempData["Error"] = $"Error al actualizar: {ex.Message}";
+            return View("Edit", empresa);
+          }
         }
 
         // POST: Empresas/Delete/5

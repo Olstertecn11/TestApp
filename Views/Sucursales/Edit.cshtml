@@ -5,9 +5,10 @@ ViewData["Title"] = "Editar Sucursal";
 
 <h2>Editar Sucursal</h2>
 
-<form asp-action="Update" method="post">
+<form asp-action="Update" asp-route-id="@Model.IdSucursal" method="post">
   <input type="hidden" asp-for="IdSucursal" />
-
+  <input type="hidden" asp-for="IdEmpresaFk" />
+  <input type="hidden" asp-for="EstaActivo" />
   <div class="mb-3">
     <label asp-for="Nombre" class="form-label"></label>
     <input asp-for="Nombre" class="form-control" />

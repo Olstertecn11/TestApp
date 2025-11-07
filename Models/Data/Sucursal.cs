@@ -11,7 +11,7 @@ namespace TestAplication.Models.Data
         public bool EstaActivo { get; set; } = true;
 
         // Relación con Empresa (N a 1)
-        public Empresa Empresa { get; set; } = null!;
+        public Empresa? Empresa { get; set; }
 
         // Relación con Colaboradores (1 a muchos)
         public ICollection<Colaborador>? Colaboradores { get; set; }

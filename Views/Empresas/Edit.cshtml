@@ -5,17 +5,21 @@ ViewData["Title"] = "Editar Empresa";
 
 <h2>Editar Empresa</h2>
 
-<form asp-action="Update" method="post">
+<form asp-action="Update" asp-route-id="@Model.IdEmpresa" method="post">
   <input type="hidden" asp-for="IdEmpresa" />
+  <input type="hidden" asp-for="EstaActivo" />
+  <input type="hidden" asp-for="IdHistorialCargaFk" />
 
   <div class="mb-3">
     <label asp-for="Nombre" class="form-label"></label>
     <input asp-for="Nombre" class="form-control" />
+    <span asp-validation-for="Nombre" class="text-danger"></span>
   </div>
 
   <div class="mb-3">
     <label asp-for="Pais" class="form-label"></label>
     <input asp-for="Pais" class="form-control" />
+    <span asp-validation-for="Pais" class="text-danger"></span>
   </div>
 
   <button type="submit" class="btn btn-success">Guardar cambios</button>

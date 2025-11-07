@@ -39,8 +39,10 @@ namespace TestAplication.Controllers
             if (id != sucursal.IdSucursal)
                 return BadRequest();
 
-            if (!ModelState.IsValid)
+            if (!ModelState.IsValid)   {
+                TempData["Error"] = "Datos inválidos. Verifica los campos.";
                 return View("Edit", sucursal);
+            }
 
             try
             {
